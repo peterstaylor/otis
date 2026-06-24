@@ -96,6 +96,7 @@ local muted_L = false
 local pre_mute_vol_L = 0
 local muted_R = false
 local pre_mute_vol_R = 0
+-- tksp
 local rec1 = false
 local rec2 = false -- it has always driven me nuts that otis comes up recording lol
 local flipped_L = false
@@ -105,6 +106,7 @@ local skipped_R = false
 local fine_adjust = false
 
 -- pedal looper mode state
+-- tksp
 local buffer_has_content = {false, false}
 local pedal_recording = {false, false}
 
@@ -471,6 +473,7 @@ local function play_key(n, z)
 end
 
 
+-- tksp
 -- clear a buffer and reset pedal looper state for that channel
 local function clear_buffer(n,state)
   softcut.buffer_clear_channel(n)
@@ -490,7 +493,7 @@ local function clear_buffer(n,state)
   end
 end
 
-
+--tksp
 -- pedal looper: first tap starts recording from the top of the buffer,
 -- second tap stops recording and sets loop end to current position
 local function pedal_rec_tap(n)
@@ -634,7 +637,7 @@ function init()
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", spds.names, 1)
-  -- new looper mode control
+  -- new looper mode control, tksp
   params:add_option("looper_mode", "looper mode", {"normal", "pedal"}, 1)
 
   params:add{
@@ -663,6 +666,7 @@ function init()
   lfo.init()
 
   params:bang()
+  -- tksp, new clear buffer function
   clear_buffer(1, "init")
   clear_buffer(2, "init")
 
@@ -951,6 +955,7 @@ function g.key(x, y, z)
     end
   end
 
+  -- tksp logic changes based on looper mode below
   if z == 1 then
     -- record L/R on/off toggles
     -- in pedal mode with an empty buffer, both buttons act as a single "tap" trigger
