@@ -1,5 +1,5 @@
 
-# otis v2.3
+# otis v2.3, alt, pedal mode
 
 ![pixelcat](assets/pixelotis.png)
 
