@@ -191,7 +191,7 @@ function sc.init()
     params:add_number(i .. "rec", i .. " rec", 0, 1, 1)
     params:set_action(i .. "rec", function(v) sc.rec_control(i, v) end)
     -- pan controls
-    params:add_control(i .. "pan", i .. " pan", controlspec.new(-1.0, 1.0, "lin", 0.01, i == 1 and -.5 or .5, ""))
+    params:add_control(i .. "pan", i .. " pan", controlspec.new(-1.0, 1.0, "lin", 0.01, i == 1 and -.75 or .75, ""))
     params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
     -- pan slew controls
     params:add_control(i .. "pan_slew", i.. " pan slew", controlspec.new(0, 1, "lin", 0.01, 0.1, ""))
