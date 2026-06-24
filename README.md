@@ -5,6 +5,8 @@
 
 stereo "tape" delay/looper thing for norns
 
+2026.06.24: new pedal style mode added by tksp
+
 join the conversation at - https://llllllll.co/t/22149
 
 ---
@@ -51,6 +53,20 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
 
 _nb: on all pages, alt + enc 1 toggles between fine and coarse parameter adjustments. turn enc 1 right for fine, left for coarse._
+
+#### _pedal controls_ 
+in parameters there is now a control called "looper mode" that can be set as _normal_ or _pedal_
+_normal_ preserves otis' standard functionality
+_pedal_ changes how the record buttons behave on first loop capture
+
+in pedal mode, with an empty audio buffer (otis comes up with buffer empty by default): 
+* key 2, first press = rec L on
+* key 3, first press = rec R on
+* key 2, second press = stop L rec, set L loop length
+* key 3, second press = stop R rec, set R loop length
+
+once audio has been recorded, otis behaves as it always has
+clearing the buffer will enable the loop length setting behavior again
 ---
 
 # grid 
