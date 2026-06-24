@@ -1,5 +1,7 @@
 --
 --          otis
+--        cookin some 
+--        new goop
 --      stereo tape     _
 --        delay/         | \
 --          looper        | |
@@ -57,10 +59,16 @@
 -- ALT + enc2 = skip config
 -- ALT + enc3 = speed config
 --
--- ----------
+-- pedal mode ----------
+-- in pedal mode
+-- k2 and k3 on edit page
+-- start recording first hit
+-- stop recording and set loop length
+-- on second hit
 --
+-----------------------
 -- v2.3 by @justmat
---
+-- pedal buttons by tksp
 -- https://llllllll.co/t/22149
 
 
@@ -83,13 +91,17 @@ local muted_L = false
 local pre_mute_vol_L = 0
 local muted_R = false
 local pre_mute_vol_R = 0
-local rec1 = true
-local rec2 = true
+local rec1 = false
+local rec2 = false -- it has always driven me nuts that otis comes up recording lol
 local flipped_L = false
 local flipped_R = false
 local skipped_L = false
 local skipped_R = false
 local fine_adjust = false
+
+-- pedal looper mode state
+local buffer_has_content = {false, false}
+local pedal_recording = {false, false}
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???", "coco"}
@@ -454,20 +466,67 @@ local function play_key(n, z)
 end
 
 
+-- clear a buffer and reset pedal looper state for that channel
+local function clear_buffer(n)
+  softcut.buffer_clear_channel(n)
+  buffer_has_content[n] = false
+  pedal_recording[n] = false
+  params:set(n .. "loop_start", 0)
+  params:set(n .. "loop_end", 60)
+  if n == 1 then
+    rec1 = false
+    params:set("1rec", 0)
+  else
+    rec2 = false
+    params:set("2rec", 0)
+  end
+end
+
+
+-- pedal looper: first tap starts recording from the top of the buffer,
+-- second tap stops recording and sets loop end to current position
+local function pedal_rec_tap(n)
+  if not pedal_recording[n] then
+    pedal_recording[n] = true
+    params:set(n .. "loop_start", 0)
+    params:set(n .. "loop_end", 60)
+    softcut.position(n, 0)
+    if n == 1 then rec1 = true else rec2 = true end
+    params:set(n .. "rec", 1)
+  else
+    pedal_recording[n] = false
+    local loop_end_pos = math.max(positions[n], 0.25) -- is 250mS too long or too short idk?
+    params:set(n .. "loop_end", loop_end_pos)
+    if n == 1 then rec1 = false else rec2 = false end
+    params:set(n .. "rec", 0)
+    softcut.position(n, 0)
+    buffer_has_content[n] = true
+  end
+end
+
+
 local function edit_key(n, z)
   if alt == 1 then
     if n == 2 and z == 1 then
-      softcut.buffer_clear_channel(1)
+      clear_buffer(1)
     elseif n == 3 and z == 1 then
-      softcut.buffer_clear_channel(2)
+      clear_buffer(2)
     end
   else
     if n == 2 and z == 1 then
-      rec1 = not rec1
-      params:set("1rec", rec1 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[1] then
+        pedal_rec_tap(1)
+      else
+        rec1 = not rec1
+        params:set("1rec", rec1 == true and 1 or 0)
+      end
     elseif n == 3 and z == 1 then
-      rec2 = not rec2
-      params:set("2rec", rec2 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[2] then
+        pedal_rec_tap(2)
+      else
+        rec2 = not rec2
+        params:set("2rec", rec2 == true and 1 or 0)
+      end
     end
   end
 end
@@ -509,9 +568,9 @@ local function midi_control(data)
   local msg = midi.to_msg(data)
   if msg.type == "note_on" then
     if msg.note == 1 then
-      softcut.buffer_clear_channel(1)
+      clear_buffer(1)
     elseif msg.note == 2 then
-      softcut.buffer_clear_channel(2)
+      clear_buffer(2)
     elseif msg.note == 36 then
       edit_key(2, 1) -- rec L
     elseif msg.note == 37 then
@@ -567,6 +626,8 @@ function init()
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", spds.names, 1)
+  -- new looper mode control
+  params:add_option("looper_mode", "looper mode", {"normal", "pedal"}, 1)
 
   params:add{
     type = "option", id = "audio_routing", name = "audio routing", 
@@ -595,6 +656,11 @@ function init()
 
   params:bang()
   softcut.buffer_clear()
+  
+  -- make sure record state is all trued up, not sure it's required?
+  clear_buffer(1)
+  clear_buffer(2) 
+
   -- timers for screen and grid redraws
   local screen_metro = metro.init()
   screen_metro.time = 1/30
@@ -762,11 +828,20 @@ local function draw_page_edit()
   screen.move(64, 39)
   screen.text_center("loop end R : " .. string.format("%.2f", params:get("2loop_end")))
 
+  local is_pedal = params:get("looper_mode") == 2
   screen.level(alt == 1 and 3 or 15)
   screen.move(5, 52)
-  screen.text(params:get("1rec") == 1 and "rec : on" or "rec : off")
+  if is_pedal and not buffer_has_content[1] then
+    screen.text(pedal_recording[1] and "tap > stop" or "tap > rec")
+  else
+    screen.text(params:get("1rec") == 1 and "rec : on" or "rec : off")
+  end
   screen.move(122, 52)
-  screen.text_right(params:get("2rec") == 1 and "rec : on" or "rec : off")
+  if is_pedal and not buffer_has_content[2] then
+    screen.text_right(pedal_recording[2] and "tap > stop" or "tap > rec")
+  else
+    screen.text_right(params:get("2rec") == 1 and "rec : on" or "rec : off")
+  end
   screen.level(alt == 1 and 15 or 3)
   screen.move(5, 60)
   screen.text("clear")
@@ -873,18 +948,35 @@ function g.key(x, y, z)
 
   if z == 1 then
     -- record L/R on/off toggles
+    -- in pedal mode with an empty buffer, both buttons act as a single "tap" trigger
     if x == 1 and y == 1 then
-      rec1 = true
-      params:set("1rec", rec1 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[1] then
+        pedal_rec_tap(1)
+      else
+        rec1 = true
+        params:set("1rec", rec1 == true and 1 or 0)
+      end
     elseif x == 2 and y == 1 then
-      rec1 = false
-      params:set("1rec", rec1 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[1] then
+        pedal_rec_tap(1)
+      else
+        rec1 = false
+        params:set("1rec", rec1 == true and 1 or 0)
+      end
     elseif x == 1 and y == 5 then
-      rec2 = true
-      params:set("2rec", rec2 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[2] then
+        pedal_rec_tap(2)
+      else
+        rec2 = true
+        params:set("2rec", rec2 == true and 1 or 0)
+      end
     elseif x == 2 and y == 5 then
-      rec2 = false
-      params:set("2rec", rec2 == true and 1 or 0)
+      if params:get("looper_mode") == 2 and not buffer_has_content[2] then
+        pedal_rec_tap(2)
+      else
+        rec2 = false
+        params:set("2rec", rec2 == true and 1 or 0)
+      end
     end
     -- flip/skip L/R
     if x == 4 and y == 1 then
@@ -969,13 +1061,13 @@ function g.key(x, y, z)
     -- holding grid alt will surface the L/R buffer clear buttons
     if x == 8 and y == 1 then
       if g_alt then
-        softcut.buffer_clear_channel(1)
+        clear_buffer(1)
       end
     end
       
     if x == 8 and y == 5 then
       if g_alt then
-        softcut.buffer_clear_channel(2)
+        clear_buffer(2)
       end
     end
     -- jump to rough position
@@ -1040,7 +1132,12 @@ function grid_redraw()
 
   g:all(0)
 
-  if rec1 then
+  local is_pedal = params:get("looper_mode") == 2
+  -- rec L LEDs: in pedal mode with empty buffer, both dim = waiting; btn1 bright = recording
+  if is_pedal and not buffer_has_content[1] then
+    g:led(1, 1, pedal_recording[1] and 15 or 4)
+    g:led(2, 1, 4)
+  elseif rec1 then
     g:led(1, 1, 15)
     g:led(2, 1, 4)
   else
@@ -1062,7 +1159,11 @@ function grid_redraw()
   end
   
 
-  if rec2 then
+  -- rec R LEDs: same logic for channel 2
+  if is_pedal and not buffer_has_content[2] then
+    g:led(1, 5, pedal_recording[2] and 15 or 4)
+    g:led(2, 5, 4)
+  elseif rec2 then
     g:led(1, 5, 15)
     g:led(2, 5, 4)
   else
