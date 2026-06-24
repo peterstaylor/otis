@@ -60,12 +60,17 @@
 -- ALT + enc3 = speed config
 --
 -- pedal mode ----------
--- in pedal mode
--- k2 and k3 on edit page
--- start recording first hit
--- stop recording and set loop length
--- on second hit
+-- 
+-- when audio buffer empty
+-- key2, 1st press = REC L
+-- key3, 1st press = REC R
+-- key2, 2nd press = stop L
+--      sets loop length
+-- key3, 2nd press = stop R
+--      sets loop length
 --
+-- after audio buffer has audio
+-- otis behaves normally 
 -----------------------
 -- v2.3 by @justmat
 -- pedal buttons by tksp
