@@ -472,12 +472,15 @@ end
 
 
 -- clear a buffer and reset pedal looper state for that channel
-local function clear_buffer(n)
+local function clear_buffer(n,state)
   softcut.buffer_clear_channel(n)
   buffer_has_content[n] = false
   pedal_recording[n] = false
-  params:set(n .. "loop_start", 0)
-  params:set(n .. "loop_end", 60)
+  local is_pedal = params:get("looper_mode") == 2
+  if is_pedal and state == "normal" then
+    params:set(n .. "loop_start", 0)
+    params:set(n .. "loop_end", 60)
+  end
   if n == 1 then
     rec1 = false
     params:set("1rec", 0)
@@ -513,9 +516,9 @@ end
 local function edit_key(n, z)
   if alt == 1 then
     if n == 2 and z == 1 then
-      clear_buffer(1)
+      clear_buffer(1, "normal")
     elseif n == 3 and z == 1 then
-      clear_buffer(2)
+      clear_buffer(2, "normal")
     end
   else
     if n == 2 and z == 1 then
@@ -573,9 +576,9 @@ local function midi_control(data)
   local msg = midi.to_msg(data)
   if msg.type == "note_on" then
     if msg.note == 1 then
-      clear_buffer(1)
+      clear_buffer(1, "normal")
     elseif msg.note == 2 then
-      clear_buffer(2)
+      clear_buffer(2, "normal")
     elseif msg.note == 36 then
       edit_key(2, 1) -- rec L
     elseif msg.note == 37 then
@@ -660,11 +663,8 @@ function init()
   lfo.init()
 
   params:bang()
-  softcut.buffer_clear()
-  
-  -- make sure record state is all trued up, not sure it's required?
-  clear_buffer(1)
-  clear_buffer(2) 
+  clear_buffer(1, "init")
+  clear_buffer(2, "init")
 
   -- timers for screen and grid redraws
   local screen_metro = metro.init()
@@ -1066,13 +1066,13 @@ function g.key(x, y, z)
     -- holding grid alt will surface the L/R buffer clear buttons
     if x == 8 and y == 1 then
       if g_alt then
-        clear_buffer(1)
+        clear_buffer(1, "normal")
       end
     end
       
     if x == 8 and y == 5 then
       if g_alt then
-        clear_buffer(2)
+        clear_buffer(2, "normal")
       end
     end
     -- jump to rough position
