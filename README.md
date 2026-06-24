@@ -67,8 +67,8 @@ in pedal mode, with an empty audio buffer (otis comes up with buffer empty by de
 * key 2, second press = stop L rec, set L loop length
 * key 3, second press = stop R rec, set R loop length
 
-once audio has been recorded, otis behaves as it always has
-clearing the buffer will enable the loop length setting behavior again
+    once audio has been recorded, otis behaves as it always has
+    clearing the buffer will enable the loop length setting behavior again
 ---
 
 # grid 
