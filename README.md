@@ -56,7 +56,9 @@ _nb: on all pages, alt + enc 1 toggles between fine and coarse parameter adjustm
 
 #### _pedal controls_ 
 in parameters there is now a control called "looper mode" that can be set as _normal_ or _pedal_
+
 _normal_ preserves otis' standard functionality
+
 _pedal_ changes how the record buttons behave on first loop capture
 
 in pedal mode, with an empty audio buffer (otis comes up with buffer empty by default): 
