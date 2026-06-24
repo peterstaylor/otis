@@ -47,8 +47,9 @@ function sc.set_input(n)
   end
 end
 
-local fb_hold1 = .75
-local fb_hold2 = .75
+-- try changing these to 0
+local fb_hold1 = 0
+local fb_hold2 = 0
 
 function sc.rec_control(id, state)
   if id == 1 then
