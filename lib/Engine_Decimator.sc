@@ -32,15 +32,19 @@ Engine_Decimator : CroneEngine {
 		SynthDef(\Saturator, { |inL, inR, out, srate=48000, sdepth=32, crossover=1400, distAmount=15, lowbias=0.04, highbias=0.12, hissAmount=0.5, cutoff=11500, choir_amp = 0.01|
 			var input = Decimator.ar(SoundIn.ar([0,1]),srate, sdepth);
 			var crossAmount = 50;
+			var mono = (input[0] + input[1]) * 0.5
 
-			var bass = LPF.ar(input,330, 1)
-			var bass_pitch = Lag.kr(Pitch.kr(bass, 206, 40, 3300))
-			var tenor = BPF.ar(input, 330, 1.2, 1)
-			var tenor_pitch = Lag.kr(Pitch.kr(tenor,327, 65, 1046))
-			var alto = BPF.ar(input, 437, 1.2, 1)
-			var alto_pitch = Lag.kr(Pitch.kr(alto, 436, 87, 1396))
-			var soprano = HPF.ar(input, 261, 1)
-			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094))
+			var bass = LPF.ar(mono,330, 1)
+			var bass_pitch = Lag.kr(Pitch.kr(bass, 206, 40, 3300)[0])
+
+			var tenor = BPF.ar(mono, 330, 1.2, 1)
+			var tenor_pitch = Lag.kr(Pitch.kr(tenor,327, 65, 1046)[0])
+
+			var alto = BPF.ar(mono, 437, 1.2, 1)
+			var alto_pitch = Lag.kr(Pitch.kr(alto, 436, 87, 1396)[0])
+
+			var soprano = HPF.ar(mono, 261, 1)
+			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094)[0])
 
 			var choir = SinOsc.ar(bass_pitch, 0, 0.25)
 			choir = choir + SinOsc.ar(tenor_pitch, 0, 0.25)
@@ -88,12 +92,9 @@ Engine_Decimator : CroneEngine {
 				Mix.new([lpf * (1 / lowbias) * (distAmount/10), shaped])
 			]);
 
-			var limited = Limiter.ar(Mix.new([
-				(input * 0.5) * (1 - choir_amp),
-				choir * choir_amp
-			]), 0.9, 0.01);
-
-
+			var decimator_out = Mix.new([input * 0.5, morehiss]);
+			var limited = Limiter.ar((decimator_out * (1 - choir_amp)) + (choir * choir_amp),0.9, 0.01);
+			
 			Out.ar(out, MoogFF.ar(
 				limited,
 				cutoff,
