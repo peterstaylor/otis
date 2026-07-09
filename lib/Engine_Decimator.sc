@@ -29,9 +29,15 @@ Engine_Decimator : CroneEngine {
 		~tf = ~tf.normalize;
 		~tfBuf = Buffer.loadCollection(context.server, ~tf.asWavetableNoWrap);
 
-		SynthDef(\Saturator, { |inL, inR, out, srate=48000, sdepth=32, crossover=1400, distAmount=15, lowbias=0.04, highbias=0.12, hissAmount=0.5, cutoff=11500, choir_amp = 0.01|
+		SynthDef(\Saturator, { |inL, inR, out, srate=48000, sdepth=32, crossover=1400, distAmount=15, lowbias=0.04, highbias=0.12, hissAmount=0.5, cutoff=11500, choir_amp = 0.01, choir_tilt = 0|
 			var input = Decimator.ar(SoundIn.ar([0,1]),srate, sdepth);
 			var crossAmount = 50;
+
+			var bass_amp = 0.307 - 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt
+			var tenor_amp = 0.388 - 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt
+			var alto_amp = 0.388 + 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt
+			var soprano_amp = 0.307 + 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt
+
 			var mono = (input[0] + input[1]) * 0.5
 
 			var bass = LPF.ar(mono,330, 1)
@@ -46,10 +52,10 @@ Engine_Decimator : CroneEngine {
 			var soprano = HPF.ar(mono, 261, 1)
 			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094)[0])
 
-			var choir = SinOsc.ar(bass_pitch, 0, 0.25)
-			choir = choir + SinOsc.ar(tenor_pitch, 0, 0.25)
-			choir = choir + SinOsc.ar(alto_pitch, 0, 0.25)
-			choir = choir + SinOsc.ar(soprano_pitch, 0, 0.25)
+			var choir = SinOsc.ar(bass_pitch, 0, bass_amp)
+			choir = choir + SinOsc.ar(tenor_pitch, 0, tenor_amp)
+			choir = choir + SinOsc.ar(alto_pitch, 0, alto_amp)
+			choir = choir + SinOsc.ar(soprano_pitch, 0, soprano_amp)
 
 			var lpf = LPF.ar(
 				input,
@@ -94,7 +100,7 @@ Engine_Decimator : CroneEngine {
 
 			var decimator_out = Mix.new([input * 0.5, morehiss]);
 			var limited = Limiter.ar((decimator_out * (1 - choir_amp)) + (choir * choir_amp),0.9, 0.01);
-			
+
 			Out.ar(out, MoogFF.ar(
 				limited,
 				cutoff,
@@ -125,6 +131,10 @@ Engine_Decimator : CroneEngine {
 
 		this.addCommand("choir_amp", "f", {|msg|
 			saturator.set(\choir_amp, msg[1]);
+		});
+
+		this.addCommand("choir_tilt", "f", {|msg|
+			saturator.set(\choir_tilt, msg[1]);
 		});
 
 		this.addCommand("sdepth", "f", {|msg|

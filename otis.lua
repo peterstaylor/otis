@@ -635,6 +635,9 @@ function init()
   -- choir amplitude, tksp
   params:add_control("choir_amplitude", "choir amplitude", controlspec.new(0.0, 1.0, "lin", 0.01, 0, ''))
   params:set_action("choir_amplitude", function(x) engine.choir_amp(x) end)
+  -- choir spectral tilt, tksp
+  params:add_control("choir_tilt", "choir spectral tilt", controlspec.new(-1.0, 1.0, "lin", 0.01, 0, ''))
+  params:set_action("choir_tilt", function(x) engine.choir_tilt(x) end)
 
   params:add_separator("config")
 
