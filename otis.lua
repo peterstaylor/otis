@@ -632,6 +632,9 @@ function init()
   -- tape hiss
   params:add_control("hiss", "hiss", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
+  -- choir amplitude, tksp
+  params:add_control("choir_amplitude", "choir amplitude", controlspec.new(0.0, 1.0, "lin", 0.1, 0, ''))
+  params:set_action("choir_amplitude", function(x) engine.choir_amp(x) end)
 
   params:add_separator("config")
 
