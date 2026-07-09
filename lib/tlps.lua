@@ -47,28 +47,26 @@ function sc.set_input(n)
   end
 end
 
--- try changing these to 0
-local fb_hold1 = 0
-local fb_hold2 = 0
-
+-- deleted local fb hold variables
+-- changed so that the hold variable gets displayed
+-- but not used when not recording
+-- so you can recording feedback without hitting record
 function sc.rec_control(id, state)
   if id == 1 then
     if state == 1 then
       softcut.rec_level(1, 1)
-      params:set("1feedback", fb_hold1)
+      softcut.pre_level(1, params:get("1feedback"))
     else
       softcut.rec_level(1, 0)
-      fb_hold1 = params:get("1feedback")
-      params:set("1feedback", 1)
+      softcut.pre_level(1,1)
     end
   else 
     if state == 1 then
       softcut.rec_level(2, 1)
-      params:set("2feedback", fb_hold2)
+      softcut.pre_level(2, params:get("2feedback"))
     else
       softcut.rec_level(2, 0)
-      fb_hold2 = params:get("2feedback")
-      params:set("2feedback", 1)
+      softcut.pre_level(2,1)
     end
   end
 end

@@ -765,6 +765,7 @@ local function draw_page_play()
     screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
   end
   screen.level(alt == 1 and 15 or 3)
+  
   screen.move(64, 31)
   screen.text_center("feedback L : " .. string.format("%.2f", params:get("1feedback")))
   screen.move(64, 39)
