@@ -33,29 +33,32 @@ Engine_Decimator : CroneEngine {
 			var input = Decimator.ar(SoundIn.ar([0,1]),srate, sdepth);
 			var crossAmount = 50;
 
-			var bass_amp = 0.307 - 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt
-			var tenor_amp = 0.388 - 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt
-			var alto_amp = 0.388 + 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt
-			var soprano_amp = 0.307 + 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt
+			var mono = (input[0] + input[1]) * 0.5;
 
-			var mono = (input[0] + input[1]) * 0.5
+			var bass = LPF.ar(mono,330, 1);
+			var bass_pitch = Lag.kr(Pitch.kr(bass, 206, 40, 3300)[0]);
+			var bass_amp = 0.307 - 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
+			bass_amp = bass_amp * Amplitude.kr(bass, 0.16, .32);
 
-			var bass = LPF.ar(mono,330, 1)
-			var bass_pitch = Lag.kr(Pitch.kr(bass, 206, 40, 3300)[0])
+			var tenor = BPF.ar(mono, 330, 1.2, 1);
+			var tenor_pitch = Lag.kr(Pitch.kr(tenor,327, 65, 1046)[0]);
+			var tenor_amp = 0.388 - 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
+			tenor_amp = tenor_amp * Amplitude.kr(tenor, 0.08, 0.16);
 
-			var tenor = BPF.ar(mono, 330, 1.2, 1)
-			var tenor_pitch = Lag.kr(Pitch.kr(tenor,327, 65, 1046)[0])
+			var alto = BPF.ar(mono, 437, 1.2, 1);
+			var alto_pitch = Lag.kr(Pitch.kr(alto, 436, 87, 1396)[0]);
+			var alto_amp = 0.388 + 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
+			alto_amp = alto_amp * Amplitude.kr(alto, 0.04, 0.08);
 
-			var alto = BPF.ar(mono, 437, 1.2, 1)
-			var alto_pitch = Lag.kr(Pitch.kr(alto, 436, 87, 1396)[0])
+			var soprano = HPF.ar(mono, 261, 1);
+			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094)[0]);
+			var soprano_amp = 0.307 + 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
+			soprano_amp = soprano_amp * Amplitude.kr(soprano, 0.02, 0.04);
 
-			var soprano = HPF.ar(mono, 261, 1)
-			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094)[0])
-
-			var choir = SinOsc.ar(bass_pitch, 0, bass_amp)
-			choir = choir + SinOsc.ar(tenor_pitch, 0, tenor_amp)
-			choir = choir + SinOsc.ar(alto_pitch, 0, alto_amp)
-			choir = choir + SinOsc.ar(soprano_pitch, 0, soprano_amp)
+			var choir = SinOsc.ar(bass_pitch, 0, bass_amp);
+			choir = choir + SinOsc.ar(tenor_pitch, 0, tenor_amp);
+			choir = choir + SinOsc.ar(alto_pitch, 0, alto_amp);
+			choir = choir + SinOsc.ar(soprano_pitch, 0, soprano_amp);
 
 			var lpf = LPF.ar(
 				input,
