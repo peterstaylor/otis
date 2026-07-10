@@ -37,23 +37,23 @@ Engine_Decimator : CroneEngine {
 
 			var bass = LPF.ar(mono,330, 1);
 			var bass_pitch = Lag.kr(Pitch.kr(bass, 206, 40, 3300)[0]);
-			var bass_amp = 0.307 - 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
-			bass_amp = bass_amp * Amplitude.kr(bass, 0.16, .32);
+			var bass_amp = 0.307 - (0.214 * choir_tilt) - (0.107 * choir_tilt * choir_tilt);
+			bass_amp = bass_amp.max(0) * Amplitude.kr(bass, 0.16, .32);
 
 			var tenor = BPF.ar(mono, 330, 1.2, 1);
 			var tenor_pitch = Lag.kr(Pitch.kr(tenor,327, 65, 1046)[0]);
-			var tenor_amp = 0.388 - 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
-			tenor_amp = tenor_amp * Amplitude.kr(tenor, 0.08, 0.16);
+			var tenor_amp = 0.388 - (0.107 * choir_tilt) - (0.107 * choir_tilt * choir_tilt);
+			tenor_amp = tenor_amp.max(0) * Amplitude.kr(tenor, 0.08, 0.16);
 
 			var alto = BPF.ar(mono, 437, 1.2, 1);
 			var alto_pitch = Lag.kr(Pitch.kr(alto, 436, 87, 1396)[0]);
-			var alto_amp = 0.388 + 0.107 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
-			alto_amp = alto_amp * Amplitude.kr(alto, 0.04, 0.08);
+			var alto_amp = 0.388 + (0.107 * choir_tilt) - (0.107 * choir_tilt * choir_tilt);
+			alto_amp = alto_amp.max(0) * Amplitude.kr(alto, 0.04, 0.08);
 
 			var soprano = HPF.ar(mono, 261, 1);
 			var soprano_pitch = Lag.kr(Pitch.kr(soprano, 654, 130, 2094)[0]);
-			var soprano_amp = 0.307 + 0.214 * choir_tilt - 0.107 * choir_tilt * choir_tilt;
-			soprano_amp = soprano_amp * Amplitude.kr(soprano, 0.02, 0.04);
+			var soprano_amp = 0.307 + (0.214 * choir_tilt) - (0.107 * choir_tilt * choir_tilt);
+			soprano_amp = soprano_amp.max(0) * Amplitude.kr(soprano, 0.02, 0.04);
 
 			var choir = SinOsc.ar(bass_pitch, 0, bass_amp);
 			choir = choir + SinOsc.ar(tenor_pitch, 0, tenor_amp);
@@ -125,6 +125,7 @@ Engine_Decimator : CroneEngine {
 			\highbias, 0.12, //0.01 - 1
 			\hissAmount, 0.2, //0.0 - 1.0
 			\choir_amp, 0.01, // 0.0 - 1.0
+			\choir_tilt, 0, // -1.0 - 1.0
 			\cutoff, 11500],
 		context.xg);
 
