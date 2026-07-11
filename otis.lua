@@ -347,8 +347,10 @@ local function play_enc(n, d)
   if alt == 1 then
     if n == 2 then
       params:delta("1feedback", d)
+      softcut.pre_level(1,1)
     elseif n == 3 then
       params:delta("2feedback", d)
+      softcut.pre_level(2,1)
     end
   else
     local l,r,lfo = check_for_speed_modulation()
@@ -633,11 +635,11 @@ function init()
   params:add_control("hiss", "hiss", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
   -- choir amplitude, tksp
-  params:add_control("choir_amplitude", "choir amplitude", controlspec.new(0.0, 1.0, "lin", 0.01, 0, ''))
-  params:set_action("choir_amplitude", function(x) engine.choir_amp(x) end)
+  --params:add_control("choir_amplitude", "choir amplitude", controlspec.new(0.0, 1.0, "lin", 0.01, 0, ''))
+  --params:set_action("choir_amplitude", function(x) engine.choir_amp(x) end)
   -- choir spectral tilt, tksp
-  params:add_control("choir_tilt", "choir spectral tilt", controlspec.new(-1.0, 1.0, "lin", 0.01, 0, ''))
-  params:set_action("choir_tilt", function(x) engine.choir_tilt(x) end)
+  --params:add_control("choir_tilt", "choir spectral tilt", controlspec.new(-1.0, 1.0, "lin", 0.01, 0, ''))
+  --params:set_action("choir_tilt", function(x) engine.choir_tilt(x) end)
 
   params:add_separator("config")
 
@@ -1235,7 +1237,7 @@ function grid_redraw()
 end
 
 function route_audio()
-    clock.sleep(0.5)
+    clock.sleep(5.0)
     local selected_route = params:get("audio_routing")
     if rerouting_audio == true then
       rerouting_audio = false
