@@ -347,10 +347,14 @@ local function play_enc(n, d)
   if alt == 1 then
     if n == 2 then
       params:delta("1feedback", d)
-      softcut.pre_level(1,1)
+      if not rec1 then
+        softcut.pre_level(1,1)
+      end
     elseif n == 3 then
       params:delta("2feedback", d)
-      softcut.pre_level(2,1)
+      if not rec2 then
+        softcut.pre_level(2,1)
+      end
     end
   else
     local l,r,lfo = check_for_speed_modulation()
